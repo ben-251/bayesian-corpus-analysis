@@ -66,16 +66,17 @@ class BayesianModeler:
 		self.authors = authors
 	
 	def get_total_matching_sentences(self, length:int, author:Author):
-		total_matching = 0
-		for sentence in author.sentences:
-			if sentence.length == length:
-				total_matching += 1
-		return total_matching	
+		total = 0
+		for loop_length in author.sentence_lengths:
+			if loop_length == length:
+				total += 1
+		return total
+		
 
 	def prior(self, identity):
 		return 1/len(self.authors)
 
-	def likelihood(self, length: int, author:Author):
+	def likelihood(self, length: int, author:Author) -> float:
 		total_matching = self.get_total_matching_sentences(length, author)
 		total_sentences = len(author.sentences)
 		return total_matching / total_sentences
