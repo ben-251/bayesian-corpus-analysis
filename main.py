@@ -10,6 +10,9 @@ class Author:
 		self.sentence_lengths = []
 		self.sentence_length_counts = []
 
+	def __str__(self) -> str:
+		return self.name
+
 	def import_sentences(self):
 		self.sentences = []
 		with open(self.file_path, "r") as f:
@@ -92,8 +95,31 @@ class BayesianModeler:
 
 	def find_posterior(self, sentence_length:int, author:Author):
 		# P(I|L) = A(L,I) / sum ( A(L, I) )
+		evidence = self.evidence(sentence_length)
+		if evidence == 0:
+			return 0 # there's no chance of this length occuring at all!
 		return self.find_area(sentence_length, author) / self.evidence(sentence_length)
 
 
+
+def main():
+	Harryette = Author("Harryette", file_name="data/test_data/Harryette.txt")
+	David = Author("David", file_name="data/test_data/David.txt")
+	Will = Author("Shakespeare", file_name="data/test_data/shakespeare.txt")
+	
+	authors = AuthorGroup([Harryette, David, Will])
+	modeller = BayesianModeler(authors)
+	target_author = Harryette
+	target_length = 9
+
+	m_length = authors.get_max_length()
+	for length in range(1, m_length+1):
+		posteriors = list(map(lambda author: modeller.find_posterior(length, author), authors))
+		if all([posterior == 0 for posterior in posteriors]):
+			continue
+		print(f"\n\nLENGTH OF {length}")
+		for author, posterior in zip(authors, posteriors):			
+			print(f"{author}: {round(posterior, 2)}")
+
 if __name__ == "__main__":
-	print("script")
+	main()

@@ -1,0 +1,4 @@
+- import actual data, say famous author texts
+- deal with "...", "!!", "??????", etc
+- write a function to calculate posterior for all authors and generate a ranking
+- map the rankings across all sentence lengths to get some sort of heatmap??
