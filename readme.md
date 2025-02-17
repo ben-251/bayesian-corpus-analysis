@@ -104,4 +104,4 @@ def initialise_author_data(authors):
 # Evaluation and such
 I predict that this model will do worse as more identities are added, since it’s easy to tell apart an overwriter from an underwriter, but not a slight-overwriter from a slightly-less-overwriter, where “-over-” and “-under-” refer to the expected sentence lengths from an identity.
 
-Second flaw is that this will be *severely*  “overfitted”. By that I mean that if someone happens to write a lot of sentences specifically at, say 11 and 13 words, then given a length of, say 12, the score will be quite low, even though that should be just as lik— actually no this is good, cuz it could pick on otherwise uncatcahble patterns
+Second flaw is that this will be *severely*  “overfitted”. By that I mean that if someone happens to write a lot of sentences specifically at, say 11 and 13 words, then given a length of, say 12, the score will be quite low, even though that should be just as lik— actually no this is interesting; it could pick on otherwise unnoticeable patterns

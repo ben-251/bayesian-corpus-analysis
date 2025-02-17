@@ -1,5 +1,5 @@
 from bentests import asserts, testGroup, test_all
-from main import Author, get_sentence_lengths, get_max_length, initialise_author_data
+from main import Author, AuthorGroup, BayesianModeler
 
 class DataTests(testGroup):
 	def test_sentence_import(self):
@@ -11,7 +11,7 @@ class DataTests(testGroup):
 
 	def test_sentence_lengths_for_one_author(self):
 		author = Author("A", file_name="data/test_data/A.txt")
-		get_sentence_lengths([author])
+		AuthorGroup([author]).get_sentence_lengths()
 	
 		asserts.assertEquals(
 			author.sentence_lengths,
@@ -22,7 +22,7 @@ class DataTests(testGroup):
 		authorA = Author("A", file_name="data/test_data/A.txt")
 		authorB = Author("B", file_name="data/test_data/B.txt")
 		
-		get_sentence_lengths([authorA, authorB])
+		AuthorGroup([authorA, authorB]).get_sentence_lengths()
 	
 		asserts.assertEquals(
 			(authorA.sentence_lengths, authorB.sentence_lengths),
@@ -32,21 +32,17 @@ class DataTests(testGroup):
 	def test_get_max_length(self):
 		authorA = Author("A", file_name="data/test_data/A.txt")
 		authorB = Author("B", file_name="data/test_data/B.txt")
-		
-		authors = [authorA, authorB]
-
-		get_sentence_lengths(authors)
-		max_length = get_max_length(authors)
 	
+		authors = AuthorGroup([authorA, authorB])
+		max_length = authors.get_max_length()
+		
 		asserts.assertEquals(
 			max_length, 11
 		)		
 	
 	def test_initialise_data_for_one(self):
 		authorA = Author("A", file_name="data/test_data/A.txt")		
-		authors = [authorA]
-
-		initialise_author_data(authors)
+		authors = AuthorGroup([authorA])
 
 		asserts.assertEquals(
 			authorA.sentence_length_counts,
@@ -55,8 +51,24 @@ class DataTests(testGroup):
 		)
 
 class BayesianTests(testGroup):
-	...
+	def test_basic(self):
+		# C: [1, 1, 1, 0]
+		# D: [1, 0, 0, 1]
+
+		# P(C|4) should be 1
+
+		C = Author("C", file_name="data/test_data/C.txt")
+		D = Author("C", file_name="data/test_data/C.txt")
+		
+		authors = AuthorGroup([C,D])
+		modeller = BayesianModeler(authors)
+		posterior = modeller.find_posterior(4, C)
+		asserts.assertEquals(
+			posterior,
+			1.0
+		)
 
 test_all(
-	DataTests
+	DataTests,
+	BayesianTests
 )
