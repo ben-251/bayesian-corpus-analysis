@@ -1,4 +1,6 @@
 from typing import Iterator, List, Optional
+from functools import reduce
+import numpy as np
 import re
 
 class Author:
@@ -22,6 +24,14 @@ class Author:
 				split_line = [s.rstrip('.!?') for s in split_line]
 				self.sentences.extend(split_line)
 
+	def find_sentence_lengths(self) -> List[int]:
+		sentence_lengths = []
+		for sentence in self.sentences:
+			words = sentence.split(" ")
+			sentence_lengths.append(len(words))
+		return sentence_lengths
+
+
 
 class AuthorGroup:
 	def __init__(self, authors:List[Author]) -> None:
@@ -37,23 +47,20 @@ class AuthorGroup:
 	def __len__(self) -> int:
 		return len(self.authors)
 
-	def get_sentence_lengths(self) -> None:
-		for author in self.authors:
-			author.sentence_lengths = []
-			for sentence in author.sentences:
-				words = sentence.split(" ")
-				author.sentence_lengths.append(len(words))
-
 	def get_max_length(self) -> int:
 		maximum_length = 0
 		for author in self.authors:
 			current_max = max(author.sentence_lengths)
 			if current_max > maximum_length:
 				maximum_length = current_max
+
+		reduce(lambda author1, author2: max(author1.find_sentence_lengths(), author2.find_sentence_lengths()), self.authors)
 		return maximum_length
 
 	def initialise_author_data(self) -> None:
-		self.get_sentence_lengths()
+		for author in self.authors:
+			author.find_sentence_lengths()
+
 		max_length = self.get_max_length()
 		for author in self.authors:
 			author.sentence_length_counts = [0]*max_length
