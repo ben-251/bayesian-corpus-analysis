@@ -1,5 +1,6 @@
 from bentests import asserts, testGroup, test_all
-from main import Author, AuthorGroup, BayesianModeler
+from bentests.tester import TestResult
+from main import Author, BayesianModeler
 
 class DataTests(testGroup):
 	def test_sentence_import(self):
@@ -11,30 +12,25 @@ class DataTests(testGroup):
 
 	def test_sentence_lengths_for_one_author(self):
 		author = Author("A", file_name="data/test_data/A.txt")
-		AuthorGroup([author]).get_sentence_lengths()
+		sentence_lengths = author.find_sentence_lengths()
 	
 		asserts.assertEquals(
-			author.sentence_lengths,
+			sentence_lengths,
 			[1,6,1, 11,4]
 		)
 
-	def test_sentence_lengths_for_two_authors(self):
+	def test_max_sentence_length_one_author(self):
 		authorA = Author("A", file_name="data/test_data/A.txt")
-		authorB = Author("B", file_name="data/test_data/B.txt")
-		
-		AuthorGroup([authorA, authorB]).get_sentence_lengths()
-	
-		asserts.assertEquals(
-			(authorA.sentence_lengths, authorB.sentence_lengths),
-			([1,6,1,11,4], [8, 6, 4, 2])
-		)
+		length = authorA.max_sentence_length()
 
-	def test_get_max_length(self):
+		asserts.assertEquals(length, 11)
+
+	def test_get_max_length_mult_authors(self):
 		authorA = Author("A", file_name="data/test_data/A.txt")
 		authorB = Author("B", file_name="data/test_data/B.txt")
 	
-		authors = AuthorGroup([authorA, authorB])
-		max_length = authors.get_max_length()
+		modeler = BayesianModeler([authorA, authorB])
+		max_length = modeler.get_max_length()
 		
 		asserts.assertEquals(
 			max_length, 11
@@ -42,12 +38,23 @@ class DataTests(testGroup):
 	
 	def test_initialise_data_for_one(self):
 		authorA = Author("A", file_name="data/test_data/A.txt")		
-		authors = AuthorGroup([authorA])
+		modeler = BayesianModeler([authorA])
 
 		asserts.assertEquals(
-			authorA.sentence_length_counts,
+			modeler.authors[0].sentence_length_counts,
 		  #  1  2  3  4  5  6  7  8  9  10 11
 			[2, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1 ]
+		)
+
+	def test_initialise_data_mult_authors(self):
+		authorC = Author("C", file_name="data/test_data/C.txt")	
+		authorD = Author("D", file_name="data/test_data/D.txt")	
+		modeler = BayesianModeler([authorC, authorD])
+
+		asserts.assertEquals(
+			modeler.authors[0].sentence_length_counts,
+		  #  1  2  3  4 
+			[1, 1, 1, 0 ]
 		)
 
 class BayesianTests(testGroup):
@@ -55,7 +62,7 @@ class BayesianTests(testGroup):
 		C = Author("C", file_name="data/test_data/C.txt")
 		D = Author("D", file_name="data/test_data/D.txt")
 		
-		authors = AuthorGroup([C,D])
+		authors = [C,D]
 		modeller = BayesianModeler(authors)
 
 		prior = modeller.prior(C)
@@ -65,7 +72,7 @@ class BayesianTests(testGroup):
 		C = Author("C", file_name="data/test_data/C.txt")
 		D = Author("D", file_name="data/test_data/D.txt")
 		
-		authors = AuthorGroup([C,D])
+		authors = [C,D]
 		modeller = BayesianModeler(authors)
 		matching = modeller.get_total_matching_sentences(4, C)
 		asserts.assertEquals(
@@ -77,7 +84,7 @@ class BayesianTests(testGroup):
 		C = Author("C", file_name="data/test_data/C.txt")
 		D = Author("D", file_name="data/test_data/D.txt")
 		
-		authors = AuthorGroup([C,D])
+		authors = [C,D]
 		modeller = BayesianModeler(authors)
 		matching = modeller.get_total_matching_sentences(4, D)
 		asserts.assertEquals(
@@ -89,7 +96,7 @@ class BayesianTests(testGroup):
 		C = Author("C", file_name="data/test_data/C.txt")
 		D = Author("D", file_name="data/test_data/D.txt")
 		
-		authors = AuthorGroup([C,D])
+		authors = [C,D]
 		modeller = BayesianModeler(authors)
 		likelihood = modeller.likelihood(4, C)
 		asserts.assertEquals(
@@ -101,7 +108,7 @@ class BayesianTests(testGroup):
 		C = Author("C", file_name="data/test_data/C.txt")
 		D = Author("D", file_name="data/test_data/D.txt")
 		
-		authors = AuthorGroup([C,D])
+		authors = [C,D]
 		modeller = BayesianModeler(authors)
 		likelihood = modeller.likelihood(4, D)
 		asserts.assertEquals(
@@ -116,7 +123,7 @@ class BayesianTests(testGroup):
 		C = Author("C", file_name="data/test_data/C.txt")
 		D = Author("D", file_name="data/test_data/D.txt")
 		
-		authors = AuthorGroup([C,D])
+		authors = [C,D]
 		modeller = BayesianModeler(authors)
 		area = modeller.find_area(3, D)
 		asserts.assertEquals(
@@ -129,7 +136,7 @@ class BayesianTests(testGroup):
 		C = Author("C", file_name="data/test_data/C.txt")
 		D = Author("D", file_name="data/test_data/D.txt")
 		
-		authors = AuthorGroup([C,D])
+		authors = [C,D]
 		modeller = BayesianModeler(authors)
 		area = modeller.find_area(4, D)
 		asserts.assertEquals(
@@ -144,7 +151,7 @@ class BayesianTests(testGroup):
 		C = Author("C", file_name="data/test_data/C.txt")
 		D = Author("D", file_name="data/test_data/D.txt")
 		
-		authors = AuthorGroup([C,D])
+		authors = [C,D]
 		modeller = BayesianModeler(authors)
 
 		prior = modeller.evidence(4)
@@ -159,7 +166,7 @@ class BayesianTests(testGroup):
 		C = Author("C", file_name="data/test_data/C.txt")
 		D = Author("D", file_name="data/test_data/D.txt")
 		
-		authors = AuthorGroup([C,D])
+		authors = [C,D]
 		modeller = BayesianModeler(authors)
 		posterior = modeller.find_posterior(4, D)
 		asserts.assertEquals(
@@ -176,7 +183,7 @@ class BayesianTests(testGroup):
 		C = Author("C", file_name="data/test_data/C.txt")
 		D = Author("D", file_name="data/test_data/D.txt")
 		
-		authors = AuthorGroup([C,D])
+		authors = [C,D]
 		modeller = BayesianModeler(authors)
 		posterior = modeller.find_posterior(4, C)
 		asserts.assertEquals(
@@ -204,7 +211,7 @@ class BayesianTests(testGroup):
 		C = Author("C", file_name="data/test_data/C.txt")
 		D = Author("D", file_name="data/test_data/D.txt")
 		
-		authors = AuthorGroup([C,D])
+		authors = [C,D]
 		modeller = BayesianModeler(authors)
 		posterior = modeller.find_posterior(1, D)
 		asserts.assertAlmostEquals(
@@ -215,5 +222,6 @@ class BayesianTests(testGroup):
 
 test_all(
 	DataTests,
-	BayesianTests
+	BayesianTests,
+	skip_passes=True
 )

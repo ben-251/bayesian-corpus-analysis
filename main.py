@@ -9,7 +9,6 @@ class Author:
 		self.file_path = f"data/{name}.txt" if file_name is None else file_name
 		self.import_sentences()
 		self.words = []
-		self.sentence_lengths = []
 		self.sentence_length_counts = []
 
 	def __str__(self) -> str:
@@ -31,57 +30,30 @@ class Author:
 			sentence_lengths.append(len(words))
 		return sentence_lengths
 
-
-
-class AuthorGroup:
-	def __init__(self, authors:List[Author]) -> None:
-		self.authors = authors
-		self.initialise_author_data()
-
-	def __getitem__(self, index: int) -> Author:
-		return self.authors[index]
-
-	def __iter__(self) -> Iterator[Author]:
-		return iter(self.authors)
-
-	def __len__(self) -> int:
-		return len(self.authors)
-
-	def get_max_length(self) -> int:
-		maximum_length = 0
-		for author in self.authors:
-			current_max = max(author.sentence_lengths)
-			if current_max > maximum_length:
-				maximum_length = current_max
-
-		reduce(lambda author1, author2: max(author1.find_sentence_lengths(), author2.find_sentence_lengths()), self.authors)
-		return maximum_length
-
-	def initialise_author_data(self) -> None:
-		for author in self.authors:
-			author.find_sentence_lengths()
-
-		max_length = self.get_max_length()
-		for author in self.authors:
-			author.sentence_length_counts = [0]*max_length
-			for word_count in author.sentence_lengths:
-				author.sentence_length_counts[word_count-1] += 1
-
+	def max_sentence_length(self) -> int:
+		return max(self.find_sentence_lengths())
 
 class BayesianModeler:
-	def __init__(self, authors:AuthorGroup) -> None:
+	def __init__(self, authors:List[Author]) -> None:
 		'''
 		`authors`: a pre-initialised author group. 
 		'''
 		self.authors = authors
+		self.initialise_author_data()
 	
+	def initialise_author_data(self) -> None:
+		max_length = self.get_max_length()
+		for author in self.authors:
+			sentence_lengths = author.find_sentence_lengths()
+			author.sentence_length_counts = [0]*max_length
+			for word_count in sentence_lengths:
+				author.sentence_length_counts[word_count-1] += 1
+
 	def get_total_matching_sentences(self, length:int, author:Author):
-		total = 0
-		for loop_length in author.sentence_lengths:
-			if loop_length == length:
-				total += 1
-		return total
-		
+		return author.sentence_length_counts[length-1]
+	
+	def get_max_length(self):
+		return reduce(lambda current_max, author: max(current_max, author.max_sentence_length()), self.authors, 0) # thanks @voklen!
 
 	def prior(self, identity):
 		return 1/len(self.authors)
@@ -114,12 +86,12 @@ def main():
 	David = Author("David", file_name="data/test_data/David.txt")
 	Will = Author("Shakespeare", file_name="data/test_data/shakespeare.txt")
 	
-	authors = AuthorGroup([Harryette, David, Will])
+	authors = [Harryette, David, Will]
 	modeller = BayesianModeler(authors)
 	target_author = Harryette
 	target_length = 9
 
-	m_length = authors.get_max_length()
+	m_length = modeller.get_max_length()
 	for length in range(1, m_length+1):
 		posteriors = list(map(lambda author: modeller.find_posterior(length, author), authors))
 		if all([posterior == 0 for posterior in posteriors]):
