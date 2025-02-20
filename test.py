@@ -1,5 +1,6 @@
 from bentests import asserts, testGroup, test_all
 from bentests.tester import TestResult
+import numpy as np
 from main import Author, BayesianModeler
 
 class DataTests(testGroup):
@@ -9,6 +10,8 @@ class DataTests(testGroup):
 			author.sentences,
 			["Go","Well, you may if you wish", "Maybe", "Since the monotone convergence theorem holds, then the sequence must converge", "Or so you think"]
 		)
+
+class AuthorInitialisationTests(testGroup):
 
 	def test_sentence_lengths_for_one_author(self):
 		author = Author("A", file_name="data/test_data/A.txt")
@@ -42,8 +45,8 @@ class DataTests(testGroup):
 
 		asserts.assertEquals(
 			modeler.authors[0].sentence_length_counts,
-		  #  1  2  3  4  5  6  7  8  9  10 11
-			[2, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1 ]
+		  #           1  2  3  4  5  6  7  8  9  10 11
+			np.array([2, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
 		)
 
 	def test_initialise_data_mult_authors(self):
@@ -53,11 +56,11 @@ class DataTests(testGroup):
 
 		asserts.assertEquals(
 			modeler.authors[0].sentence_length_counts,
-		  #  1  2  3  4 
-			[1, 1, 1, 0 ]
+		              #  1  2  3  4 
+			np.array([1, 1, 1, 0 ])
 		)
 
-class BayesianTests(testGroup):
+class BayesianMathTests(testGroup):
 	def test_prior(self):
 		C = Author("C", file_name="data/test_data/C.txt")
 		D = Author("D", file_name="data/test_data/D.txt")
@@ -222,6 +225,7 @@ class BayesianTests(testGroup):
 
 test_all(
 	DataTests,
-	BayesianTests,
+	BayesianMathTests,
+	AuthorInitialisationTests,
 	skip_passes=True
 )

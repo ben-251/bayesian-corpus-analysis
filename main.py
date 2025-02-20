@@ -9,8 +9,7 @@ class Author:
 		self.file_path = f"data/{name}.txt" if file_name is None else file_name
 		self.import_sentences()
 		self.words = []
-		self.sentence_length_counts = []
-
+		self.sentence_length_counts: np.ndarray
 	def __str__(self) -> str:
 		return self.name
 
@@ -45,7 +44,7 @@ class BayesianModeler:
 		max_length = self.get_max_length()
 		for author in self.authors:
 			sentence_lengths = author.find_sentence_lengths()
-			author.sentence_length_counts = [0]*max_length
+			author.sentence_length_counts = np.zeros(max_length, dtype=np.int64)
 			for word_count in sentence_lengths:
 				author.sentence_length_counts[word_count-1] += 1
 
@@ -53,7 +52,11 @@ class BayesianModeler:
 		return author.sentence_length_counts[length-1]
 	
 	def get_max_length(self):
-		return reduce(lambda current_max, author: max(current_max, author.max_sentence_length()), self.authors, 0) # thanks @voklen!
+		return reduce(
+			lambda current_max, author: max(current_max, author.max_sentence_length()),
+			self.authors,
+			0
+		)
 
 	def prior(self, identity):
 		return 1/len(self.authors)
@@ -80,7 +83,6 @@ class BayesianModeler:
 		return self.find_area(sentence_length, author) / self.evidence(sentence_length)
 
 
-
 def main():
 	Harryette = Author("Harryette", file_name="data/test_data/Harryette.txt")
 	David = Author("David", file_name="data/test_data/David.txt")
@@ -93,12 +95,16 @@ def main():
 
 	m_length = modeller.get_max_length()
 	for length in range(1, m_length+1):
-		posteriors = list(map(lambda author: modeller.find_posterior(length, author), authors))
+		posteriors = list(map(
+			lambda author: modeller.find_posterior(length, author), 
+			authors
+		))
 		if all([posterior == 0 for posterior in posteriors]):
 			continue
 		print(f"\n\nLENGTH OF {length}")
 		for author, posterior in zip(authors, posteriors):			
 			print(f"{author}: {round(posterior, 2)}")
+
 
 if __name__ == "__main__":
 	main()
