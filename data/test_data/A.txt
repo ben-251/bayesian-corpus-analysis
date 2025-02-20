@@ -1,2 +1,3 @@
 Go! Well, you may if you wish. Maybe.
-Since the monotone convergence theorem holds, then the sequence must converge. Or so you think.
+Since the monotone convergence theorem holds,
+then the sequence must converge. Or so you think.

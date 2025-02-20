@@ -10,17 +10,18 @@ class Author:
 		self.import_sentences()
 		self.words = []
 		self.sentence_length_counts: np.ndarray
+
 	def __str__(self) -> str:
 		return self.name
 
 	def import_sentences(self):
-		self.sentences = []
 		with open(self.file_path, "r") as f:
-			for line in f:
-				line = line.strip()
-				split_line = re.split("[.!?]\\s+", line)
-				split_line = [s.rstrip('.!?') for s in split_line]
-				self.sentences.extend(split_line)
+			content = f.read()
+			one_line_content = content.replace("\n"," ")
+			split_content = re.split("[.!?]\\s+", one_line_content)
+			content_as_list = [s.rstrip('.!?') for s in split_content]
+			stripped_content = list(filter(bool, content_as_list)) # not empty
+			self.sentences = stripped_content
 
 	def find_sentence_lengths(self) -> List[int]:
 		sentence_lengths = []
